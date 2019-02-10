@@ -1,0 +1,211 @@
+#include<reg52.h>	//测量5路点火延迟时间，除去初始化时间，误差±1ms
+#include<stdlib.h>
+#include <stdio.h>
+#define uint unsigned int
+#define uchar unsigned char
+sbit d0=P1^0;
+sbit d1=P1^1;
+sbit d2=P1^2;
+sbit d3=P1^3;
+sbit d4=P1^4;
+sbit RS=P2^0;
+sbit E=P2^2;	
+uint t1,t2,t3,iw0,iw1,iw2,iw3,iw4;
+
+void delay(uint n)		//延时子函数
+{
+	uint x,y;
+	for(x=n;x>0;x--)
+	for(y=110;y>0;y--);
+}
+void wc(uchar n)		//显示屏写命令子函数
+{
+	RS=0;
+	P3=n;
+	delay(20);
+	E=1;
+	delay(20);
+	E=0;
+	delay(20);		
+}
+void wd(uchar n)	//显示屏写数据子函数
+{
+	RS=1;
+	P3=n;
+	delay(20);
+	E=1;
+	delay(20);
+	E=0;
+	delay(20);	
+}
+void init()		//初始化函数
+{
+	TMOD=0X19;
+	TH0=0;
+	TL0=0;
+	TH1=(65536-50000)/256;
+	TL1=(65536-50000)%256;
+	RCAP2L=(65536-50000)%256;
+	RCAP2H=(65536-50000)/256;
+	TH2=RCAP2H;
+	TL2=RCAP2L;
+	EA=1;
+	ET0=1;
+	ET1=1;
+	ET2=1;
+	t1=0;
+	t2=0;
+	t3=0;
+	wc(0X38);
+	wc(0X0C);
+	wc(0X01);
+	wc(0X06);
+	E=0;
+	d0=1;
+	d1=1;
+	d2=1;
+	d3=1;
+	d4=1;
+	TR0=1;
+	TR1=1;
+	TR2=1;
+}
+void zd() interrupt 1		//定时器0 测延时
+{
+	TR0=0;
+	TH0=0;
+	TL0=0;
+	t1++;
+	TR0=1;		
+}
+void zd1() interrupt 3		//定时器1 显示时间控制
+{
+	TR1=0;
+	TH1=(65536-50000)/256;
+	TL1=(65536-50000)%256;
+	t3++;
+	TR1=1;		
+}
+void zd2() interrupt 5
+{
+	TF2=0;
+	t2++;
+	if(t2==1000)
+	{
+		iw0=0;
+		iw1=0;
+		iw2=0;
+		iw3=0;
+		iw4=0;	
+	}	
+}  
+void main()
+{
+	uchar num[5];	//初始化数组
+	uchar num1[4];
+	uchar num2[4];
+	uchar num3[5];
+	uchar num4[5];
+	uint m,m1,m2,m3,m4;
+	unsigned long int time,time1,time2,time3,time4;
+	init();                            
+	while(1)
+	{
+		while(t3<200)
+		{
+			if(iw0<1)
+			{
+				if(d0==0)
+				{
+					time=TH0*256+TL0+t1*65536;
+					iw0++;
+				}	
+			}
+			if(iw1<1)
+			{
+				if(d1==0)
+				{
+					time1=TH0*256+TL0+t1*65536;
+					iw1++;
+				}
+			}
+			if(iw2<1)
+			{
+				if(d2==0)
+				{
+					time2=TH0*256+TL0+t1*65536;
+					iw2++;
+				}
+			} 
+			if(iw3<1)
+			{
+				if(d3==0)
+				{
+					time3=TH0*256+TL0+t1*65536;
+					iw3++;
+				}
+			} 
+			if(iw4<1)
+			{
+				if(d4==0)
+				{
+					time4=TH0*256+TL0+t1*65536;
+					iw4++;
+				}
+			}
+		}
+		
+		TR0=0;
+		TR1=1;
+		m=(int)((time/1000)+215);	
+		sprintf(num, "%d",m);
+		m1=(int)((time1/1000)+215);	
+		sprintf(num1, "%d",m1);
+		m2=(int)((time2/1000)+215);	
+		sprintf(num2, "%d",m2);
+		m3=(int)((time3/1000)+215);	
+		sprintf(num3, "%d",m3);
+		m4=(int)((time4/1000)+215);	
+		sprintf(num4, "%d",m4);
+		while(t2<800)	//控制显示时间
+		{
+			uint aa,bb,cc,dd,ee;
+			wc(0x80);
+			for(aa=0;aa<5;aa++)  //将生成字符串输入至1602
+			{
+				wd(num[aa]);
+				delay(500);		  //显示每个字符之间的时间间隔
+			}
+			for(bb=0;bb<4;bb++)  //将生成字符串输入至1602
+			{
+				wd(num1[bb]);
+				delay(500);		  //显示每个字符之间的时间间隔
+			}
+			for(cc=0;cc<4;cc++)  //将生成字符串输入至1602
+			{
+				wd(num2[cc]);
+				delay(500);		  //显示每个字符之间的时间间隔
+			}
+			wc(0x80+0x40);
+			for(dd=0;dd<5;dd++)  //将生成字符串输入至1602
+			{
+				wd(num3[dd]);
+				delay(500);		  //显示每个字符之间的时间间隔
+			}
+			for(ee=0;ee<5;ee++)  //将生成字符串输入至1602
+			{
+				wd(num3[ee]);
+				delay(500);		  //显示每个字符之间的时间间隔
+			}
+		}
+		TH0=0;		
+		TL0=0;
+		t1=0;  
+		t2=0;
+		t3=0;
+		wc(0X38);				 
+		wc(0X0C);
+		wc(0X01);
+		wc(0X06);  
+	}
+}
