@@ -12,13 +12,13 @@ sbit RS=P2^0;
 sbit E=P2^2;	
 uint t1,t2,t3,iw0,iw1,iw2,iw3,iw4;
 
-void delay(uint n)		//延时子函数
+void delay(uint n)		
 {
 	uint x,y;
 	for(x=n;x>0;x--)
 	for(y=110;y>0;y--);
 }
-void wc(uchar n)		//显示屏写命令子函数
+void wc(uchar n)		
 {
 	RS=0;
 	P3=n;
@@ -28,7 +28,7 @@ void wc(uchar n)		//显示屏写命令子函数
 	E=0;
 	delay(20);		
 }
-void wd(uchar n)	//显示屏写数据子函数
+void wd(uchar n)	
 {
 	RS=1;
 	P3=n;
@@ -38,7 +38,7 @@ void wd(uchar n)	//显示屏写数据子函数
 	E=0;
 	delay(20);	
 }
-void init()		//初始化函数
+void init()		
 {
 	TMOD=0X19;
 	TH0=0;
@@ -70,7 +70,7 @@ void init()		//初始化函数
 	TR1=1;
 	TR2=1;
 }
-void zd() interrupt 1		//定时器0 测延时
+void zd() interrupt 1		
 {
 	TR0=0;
 	TH0=0;
@@ -78,7 +78,7 @@ void zd() interrupt 1		//定时器0 测延时
 	t1++;
 	TR0=1;		
 }
-void zd1() interrupt 3		//定时器1 显示时间控制
+void zd1() interrupt 3		
 {
 	TR1=0;
 	TH1=(65536-50000)/256;
@@ -101,7 +101,7 @@ void zd2() interrupt 5
 }  
 void main()
 {
-	uchar num[5];	//初始化数组
+	uchar num[5];	
 	uchar num1[4];
 	uchar num2[4];
 	uchar num3[5];
@@ -167,35 +167,35 @@ void main()
 		sprintf(num3, "%d",m3);
 		m4=(int)((time4/1000)+215);	
 		sprintf(num4, "%d",m4);
-		while(t2<800)	//控制显示时间
+		while(t2<800)	
 		{
 			uint aa,bb,cc,dd,ee;
 			wc(0x80);
-			for(aa=0;aa<5;aa++)  //将生成字符串输入至1602
+			for(aa=0;aa<5;aa++)  
 			{
 				wd(num[aa]);
-				delay(500);		  //显示每个字符之间的时间间隔
+				delay(500);		  
 			}
-			for(bb=0;bb<4;bb++)  //将生成字符串输入至1602
+			for(bb=0;bb<4;bb++)  
 			{
 				wd(num1[bb]);
-				delay(500);		  //显示每个字符之间的时间间隔
+				delay(500);		 
 			}
-			for(cc=0;cc<4;cc++)  //将生成字符串输入至1602
+			for(cc=0;cc<4;cc++)  
 			{
 				wd(num2[cc]);
-				delay(500);		  //显示每个字符之间的时间间隔
+				delay(500);		  
 			}
 			wc(0x80+0x40);
-			for(dd=0;dd<5;dd++)  //将生成字符串输入至1602
+			for(dd=0;dd<5;dd++)  
 			{
 				wd(num3[dd]);
-				delay(500);		  //显示每个字符之间的时间间隔
+				delay(500);		  
 			}
-			for(ee=0;ee<5;ee++)  //将生成字符串输入至1602
+			for(ee=0;ee<5;ee++)  
 			{
 				wd(num3[ee]);
-				delay(500);		  //显示每个字符之间的时间间隔
+				delay(500);		  
 			}
 		}
 		TH0=0;		
